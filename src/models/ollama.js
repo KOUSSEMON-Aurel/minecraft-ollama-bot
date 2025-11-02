@@ -5,7 +5,7 @@ export class Ollama {
     constructor(model_name, url, params) {
         this.model_name = model_name;
         this.params = params;
-        this.url = url || 'http://127.0.0.1:11434';
+        this.url = url || 'http://ollama:11434';
         this.chat_endpoint = '/api/chat';
         this.embedding_endpoint = '/api/embeddings';
     }
@@ -77,6 +77,7 @@ export class Ollama {
 
     async send(endpoint, body) {
         const url = new URL(endpoint, this.url);
+        console.log(`Sending Ollama request to: ${url}`);
         let method = 'POST';
         let headers = new Headers();
         const request = new Request(url, { method, headers, body: JSON.stringify(body) });

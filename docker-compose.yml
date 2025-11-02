@@ -1,16 +1,58 @@
-version: '3.8'
-
 services:
   app:
-    image: node:18
-    working_dir: /app
-    volumes:
-      - .:/app
-    command: node main.js
-    ports:
-      - "3000-3003:3000-3003" # see the view from the camera mounted on your bot head: http://localhost:3000/
+    image: aurel126/minecraft-ollama-bot:latest
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+      minecraft:
+        condition: service_healthy
 
-  viaproxy: #use this service to connect to an unsupported minecraft server versions. more info: ./services/viaproxy/README.md
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: |
+      /bin/sh -c "
+      /bin/ollama serve &
+      sleep 3 &&
+      /usr/bin/ollama pull sweaterdog/andy-4:micro-q8_0 &&
+      /usr/bin/ollama pull embeddinggemma &&
+      tail -f /dev/null
+      "
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  minecraft:
+    image: itzg/minecraft-server:latest
+    container_name: minecraft
+    ports:
+      - "25566:25566"
+    environment:
+      EULA: "TRUE"
+      TYPE: "VANILLA"
+      VERSION: "1.20.2"
+      MEMORY: "2G"
+      ONLINE_MODE: "FALSE"
+      SERVER_PORT: "25566"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mc-health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  viaproxy:
     image: ghcr.io/viaversion/viaproxy:latest
     volumes:
       - ./services/viaproxy:/app/run
@@ -18,3 +60,7 @@ services:
       - "25568:25568"
     profiles:
       - viaproxy
+
+volumes:
+  ollama_data:
+

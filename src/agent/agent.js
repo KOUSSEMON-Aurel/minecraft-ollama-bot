@@ -18,13 +18,17 @@ import { Task } from './tasks/tasks.js';
 import { speak } from './speak.js';
 
 export class Agent {
+    constructor(ollama_host) {
+        this.ollama_host = ollama_host;
+    }
+
     async start(load_mem=false, init_message=null, count_id=0) {
         this.last_sender = null;
         this.count_id = count_id;
         
         // Initialize components with more detailed error handling
         this.actions = new ActionManager(this);
-        this.prompter = new Prompter(this, settings.profile);
+        this.prompter = new Prompter(this, settings.profile, this.ollama_host);
         this.name = this.prompter.getName();
         console.log(`Initializing agent ${this.name}...`);
         this.history = new History(this);

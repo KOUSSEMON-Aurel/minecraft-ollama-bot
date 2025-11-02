@@ -35,6 +35,11 @@ const argv = yargs(args)
         type: 'number',
         description: 'port of mindserver'
     })
+    .option('ollama_host', {
+        alias: 'o',
+        type: 'string',
+        description: 'host of ollama server'
+    })
     .argv;
 
 (async () => {
@@ -42,7 +47,7 @@ const argv = yargs(args)
         console.log('Connecting to MindServer');
         await serverProxy.connect(argv.name, argv.port);
         console.log('Starting agent');
-        const agent = new Agent();
+        const agent = new Agent(argv.ollama_host);
         serverProxy.setAgent(agent);
         await agent.start(argv.load_memory, argv.init_message, argv.count_id);
     } catch (error) {

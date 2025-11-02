@@ -87,7 +87,7 @@ export class Prompter {
             this.embedding_model = createModel(embedding_model_profile);
         }
         else {
-            this.embedding_model = createModel({api: chat_model_profile.api});
+            this.embedding_model = createModel(chat_model_profile);
         }
 
         this.skill_libary = new SkillLibrary(agent, this.embedding_model);

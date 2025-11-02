@@ -2,9 +2,10 @@ import { spawn } from 'child_process';
 import { logoutAgent } from '../mindcraft/mindserver.js';
 
 export class AgentProcess {
-    constructor(name, port) {
+    constructor(name, port, ollama_host) {
         this.name = name;
         this.port = port;
+        this.ollama_host = ollama_host;
     }
 
     start(load_memory=false, init_message=null, count_id=0) {
@@ -18,6 +19,8 @@ export class AgentProcess {
             args.push('-l', load_memory);
         if (init_message)
             args.push('-m', init_message);
+        if (this.ollama_host)
+            args.push('-o', this.ollama_host);
         args.push('-p', this.port);
 
         const agentProcess = spawn('node', args, {

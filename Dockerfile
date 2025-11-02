@@ -1,51 +1,36 @@
-# Specify a base image
-# FROM ubuntu:22.04
-FROM node:18
+# ===== 1. Base Image =====
+FROM node:22
 
-#Install some dependencies
+# ===== 2. Install system dependencies =====
+RUN apt-get update && apt-get install -y \
+    git unzip python3 python3-pip tmux \
+    wget apt-transport-https gnupg lsb-release \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get -y update
-RUN apt-get -y install git
-RUN apt-get -y install unzip
-RUN apt-get -y install python3
-RUN apt-get -y install python3-pip
-RUN apt-get -y install python3-boto3
-RUN apt-get -y install python3-tqdm
-RUN apt-get -y install tmux
+# ===== 3. Set working directory =====
+WORKDIR /app
 
-RUN git clone https://github.com/mindcraft-bots/mindcraft.git /mindcraft
-WORKDIR /mindcraft
-COPY ./server_data.zip /mindcraft
-RUN unzip server_data.zip
+# ===== 4. Copy your project (instead of git clone) =====
+COPY . .
 
+# ===== 5. Install Node.js dependencies =====
 RUN npm install
 
+# ===== 6. Install Java (needed for Minecraft server) =====
+RUN wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | apt-key add - \
+    && echo "deb https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" > /etc/apt/sources.list.d/adoptium.list \
+    && apt-get update && apt-get install -y temurin-21-jdk
 
-# Copy the rest of the application code to the working directory
-# RUN apt update
-# RUN apt install bash ca-certificates wget git -y # install first to avoid openjdk install bug
-# RUN apt install openjdk-17-jre-headless -y
-RUN apt install -y wget apt-transport-https gnupg lsb-release
+# ===== 7. Install AWS CLI (required by mindcraft-bots sometimes) =====
+RUN wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O awscliv2.zip \
+    && unzip awscliv2.zip && ./aws/install
 
-# Add Adoptium repository key
-RUN wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | apt-key add -
+# ===== 8. Optional: Unzip server data if needed =====
+RUN if [ -f server_data.zip ]; then unzip server_data.zip; fi
 
-# Add Adoptium repository
-RUN echo "deb https://packages.adoptium.net/artifactory/deb $(lsb_release -cs) main" > /etc/apt/sources.list.d/adoptium.list
-
-# Update package lists
-RUN apt update
-
-# Install Temurin (Adoptium) Java 21
-RUN apt install temurin-21-jdk -y
-
-# Install unzip
-
-
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-RUN unzip awscliv2.zip
-RUN ./aws/install
-
-VOLUME /data
-
+# ===== 9. Expose port for the bot =====
 EXPOSE 8000
+
+# ===== 10. Default command when container starts =====
+CMD ["node", "main.js"]
+

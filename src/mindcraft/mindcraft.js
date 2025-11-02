@@ -14,7 +14,7 @@ export async function init(host_public=false, port=8080, auto_open_ui=true) {
         console.error('Already initiliazed!');
         return;
     }
-    mindserver = createMindServer(host_public, port);
+    mindserver = await createMindServer(host_public, port);
     port = port;
     connected = true;
     if (auto_open_ui) {
@@ -57,7 +57,7 @@ export async function createAgent(settings) {
             console.warn(`Attempting to connect anyway...`);
         }
 
-        const agentProcess = new AgentProcess(agent_name, port);
+        const agentProcess = new AgentProcess(agent_name, port, settings.ollama_host);
         agentProcess.start(load_memory, init_message, agentIndex);
         agent_processes[settings.profile.name] = agentProcess;
     } catch (error) {
