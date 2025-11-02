@@ -1,3 +1,5 @@
+*Image* : https://hub.docker.com/r/aurel126/minecraft-ollama-bot
+
 🧠 Minecraft + Local AI Bot (Dockerized)
 
 This project provides a fully containerized environment that connects a Minecraft server with an AI-powered bot using Node.js, Ollama, and local LLM models.
